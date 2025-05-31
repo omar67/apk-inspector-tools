@@ -34,7 +34,7 @@ jobs:
         run: apk-mitm app.apk
 
       - name: Rename output
-        run: mv app-mitm.apk patched.apk
+        run: mv app-patched.apk patched.apk
 
       - name: Upload patched APK artifact
         uses: actions/upload-artifact@v4
