@@ -30,8 +30,8 @@ jobs:
       - name: Rename output
         run: mv app-mitm.apk patched.apk
 
-      - name: Upload patched APK as artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload patched APK artifact
+        uses: actions/upload-artifact@v3.1.2
         with:
-          name: Patched-APK
-          path: patched.apk
+          name: patched-apk
+          path: app.apk
