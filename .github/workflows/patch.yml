@@ -1,0 +1,37 @@
+name: Patch APK to Remove SSL Pinning
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Direct URL to the APK to patch'
+        required: true
+
+jobs:
+  patch_apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup JDK and tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-jdk apktool zipalign
+          npm install -g apk-mitm
+
+      - name: Download APK
+        run: curl -L ${{ github.event.inputs.apk_url }} -o app.apk
+
+      - name: Patch APK with apk-mitm
+        run: apk-mitm app.apk
+
+      - name: Rename output
+        run: mv app-mitm.apk patched.apk
+
+      - name: Upload patched APK as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Patched-APK
+          path: patched.apk
