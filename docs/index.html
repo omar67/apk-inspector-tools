@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>APK SSL Pinning Remover</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; max-width: 600px; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input[type="text"], input[type="password"], input[type="url"] {
+      width: 100%; padding: 0.5rem; margin-top: 0.3rem; box-sizing: border-box;
+    }
+    button {
+      margin-top: 1rem; padding: 0.7rem 1.5rem; font-size: 1rem;
+      cursor: pointer;
+    }
+    #status { margin-top: 1rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>APK SSL Pinning Remover</h2>
+  <p><strong>Note:</strong> Upload your APK file to a public URL (e.g., Google Drive, Dropbox, or any file hosting) and paste the direct download link below.</p>
+
+  <form id="patchForm">
+    <label for="apkUrl">Direct APK URL</label>
+    <input type="url" id="apkUrl" name="apkUrl" placeholder="https://example.com/yourapp.apk" required />
+
+    <label for="token">Your GitHub Personal Access Token</label>
+    <input type="password" id="token" name="token" placeholder="Paste your GitHub token here" required />
+
+    <button type="submit">Patch APK</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script>
+    const form = document.getElementById('patchForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = 'Triggering patch workflow... Please wait.';
+
+      const apkUrl = form.apkUrl.value.trim();
+      const token = form.token.value.trim();
+
+      if (!apkUrl || !token) {
+        status.textContent = 'Please fill in all fields.';
+        return;
+      }
+
+      try {
+        const response = await fetch('https://api.github.com/repos/omar67/apk-inspector-tools/actions/workflows/patch.yml/dispatches', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ref: 'main',
+            inputs: {
+              apk_url: apkUrl
+            }
+          })
+        });
+
+        if (response.status === 204) {
+          status.textContent = 'Workflow triggered successfully! Check your GitHub Actions for the patched APK.';
+        } else {
+          const data = await response.json();
+          status.textContent = `Error: ${data.message || 'Unknown error'}`;
+        }
+      } catch (err) {
+        status.textContent = 'Fetch error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
