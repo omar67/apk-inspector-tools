@@ -1,0 +1,35 @@
+name: Patch APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_key:
+        description: 'R2 object key of uploaded APK'
+        required: true
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download from R2
+        run: |
+          curl -o app.apk "https://<your-worker-subdomain>.workers.dev/download/${{ github.event.inputs.apk_key }}"
+      
+      - name: Patch with apk-mitm
+        run: |
+          npm install -g apk-mitm
+          apk-mitm app.apk -o patched.apk
+
+      - name: Upload patched APK back to R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          curl -X PUT --data-binary @patched.apk \
+            -H "Authorization: Bearer $R2_SECRET_ACCESS_KEY" \
+            "https://<your-r2-endpoint>/patched/${{ github.event.inputs.apk_key }}"
+
+      - name: Clean up original file (optional)
+        run: |
+          curl -X DELETE "https://<your-worker-subdomain>.workers.dev/delete/${{ github.event.inputs.apk_key }}"
