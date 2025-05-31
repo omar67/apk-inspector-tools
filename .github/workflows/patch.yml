@@ -24,6 +24,12 @@ jobs:
       - name: Download APK
         run: curl -L ${{ github.event.inputs.apk_url }} -o app.apk
 
+      - name: Check APK file info
+        run: |
+          file app.apk
+          ls -lh app.apk
+          sha256sum app.apk
+
       - name: Patch APK with apk-mitm
         run: apk-mitm app.apk
 
